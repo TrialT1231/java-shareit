@@ -3,7 +3,9 @@ package ru.practicum.shareit.item;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemUpdateDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserStorage;
@@ -18,14 +20,14 @@ public class ItemServiceImpl implements ItemService {
     private final UserStorage userStorage;
 
     @Override
-    public ItemDto create(Long userId, ItemDto dto) {
+    public ItemDto create(Long userId, ItemCreateDto dto) {
         User owner = getUserOrThrow(userId);
         Item item = itemStorage.save(ItemMapper.toItem(dto, owner));
         return ItemMapper.toItemDto(item);
     }
 
     @Override
-    public ItemDto update(Long userId, Long itemId, ItemDto dto) {
+    public ItemDto update(Long userId, Long itemId, ItemUpdateDto dto) {
         getUserOrThrow(userId);
         Item item = itemStorage.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь " + itemId + " не найдена"));

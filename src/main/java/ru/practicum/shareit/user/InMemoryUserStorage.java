@@ -11,18 +11,25 @@ import java.util.Optional;
 @Repository
 public class InMemoryUserStorage implements UserStorage {
     private final Map<Long, User> users = new HashMap<>();
+    private final Map<String, User> usersByEmail = new HashMap<>();
     private long idCounter = 0;
 
     @Override
     public User save(User user) {
         user.setId(++idCounter);
         users.put(user.getId(), user);
+        usersByEmail.put(emailKey(user.getEmail()), user);
         return user;
     }
 
     @Override
     public User update(User user) {
+        User old = users.get(user.getId());
+        if (old != null) {
+            usersByEmail.remove(emailKey(old.getEmail()));
+        }
         users.put(user.getId(), user);
+        usersByEmail.put(emailKey(user.getEmail()), user);
         return user;
     }
 
@@ -33,9 +40,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public Optional<User> findByEmail(String email) {
-        return users.values().stream()
-                .filter(u -> u.getEmail().equalsIgnoreCase(email))
-                .findFirst();
+        return Optional.ofNullable(usersByEmail.get(emailKey(email)));
     }
 
     @Override
@@ -45,6 +50,13 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public void delete(Long id) {
-        users.remove(id);
+        User removed = users.remove(id);
+        if (removed != null) {
+            usersByEmail.remove(emailKey(removed.getEmail()));
+        }
+    }
+
+    private String emailKey(String email) {
+        return email.toLowerCase();
     }
 }

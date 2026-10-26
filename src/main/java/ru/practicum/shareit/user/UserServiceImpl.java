@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.user.dto.UserCreateDto;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.dto.UserUpdateDto;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,23 +17,26 @@ public class UserServiceImpl implements UserService {
     private final UserStorage storage;
 
     @Override
-    public UserDto create(UserDto dto) {
+    public UserDto create(UserCreateDto dto) {
         checkEmailFree(dto.getEmail(), null);
         return UserMapper.toUserDto(storage.save(UserMapper.toUser(dto)));
     }
 
     @Override
-    public UserDto update(Long id, UserDto dto) {
-        User user = storage.findById(id)
+    public UserDto update(Long id, UserUpdateDto dto) {
+        User current = storage.findById(id)
                 .orElseThrow(() -> new NotFoundException("Пользователь " + id + " не найден"));
+        String name = current.getName();
+        String email = current.getEmail();
         if (dto.getEmail() != null && !dto.getEmail().isBlank()) {
             checkEmailFree(dto.getEmail(), id);
-            user.setEmail(dto.getEmail());
+            email = dto.getEmail();
         }
         if (dto.getName() != null && !dto.getName().isBlank()) {
-            user.setName(dto.getName());
+            name = dto.getName();
         }
-        return UserMapper.toUserDto(storage.update(user));
+        // создаём новый объект, чтобы хранилище видело старый email и обновило индекс
+        return UserMapper.toUserDto(storage.update(new User(id, name, email)));
     }
 
     @Override
