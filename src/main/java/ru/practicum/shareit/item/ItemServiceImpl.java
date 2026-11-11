@@ -129,11 +129,7 @@ public class ItemServiceImpl implements ItemService {
         if (!hasFinishedBooking) {
             throw new BadRequestException("Комментарий можно оставить только после завершённой аренды вещи");
         }
-        Comment comment = new Comment();
-        comment.setText(dto.getText());
-        comment.setItem(item);
-        comment.setAuthor(author);
-        comment.setCreated(now);
+        Comment comment = CommentMapper.toComment(dto, item, author, now);
         return CommentMapper.toCommentDto(commentRepository.save(comment));
     }
 

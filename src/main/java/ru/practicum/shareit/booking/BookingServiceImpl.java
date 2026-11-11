@@ -13,6 +13,7 @@ import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
+import java.time.temporal.ChronoUnit;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -41,6 +42,14 @@ public class BookingServiceImpl implements BookingService {
         }
         if (!dto.getEnd().isAfter(dto.getStart())) {
             throw new BadRequestException("Дата окончания должна быть позже даты начала");
+        }
+        if (dto.getStart().isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))) {
+            throw new BadRequestException("Дата начала не может быть в прошлом");
+        }
+        boolean isBusy = bookingRepository.existsByItem_IdAndStatusAndStartIsBeforeAndEndIsAfter(
+                item.getId(), BookingStatus.APPROVED, dto.getEnd(), dto.getStart());
+        if (isBusy) {
+            throw new BadRequestException("Вещь " + item.getId() + " уже забронирована на выбранное время");
         }
         Booking booking = bookingRepository.save(BookingMapper.toBooking(dto, item, booker));
         return BookingMapper.toBookingDto(booking);
