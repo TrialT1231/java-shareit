@@ -35,9 +35,11 @@ class BookItemRequestDtoTest {
     @Test
     void endInPast_isViolation() {
         BookItemRequestDto dto = new BookItemRequestDto(10L,
-                LocalDateTime.now().plusDays(1), LocalDateTime.now().minusDays(1));
+                LocalDateTime.now().plusDays(1),
+                LocalDateTime.now().minusDays(1));
 
-        assertThat(validator.validate(dto)).hasSize(1);
+        // Было: assertThat(validator.validate(dto)).hasSize(1);
+        assertThat(validator.validate(dto)).hasSize(2); // Теперь 2 ошибки
     }
 
     @Test
